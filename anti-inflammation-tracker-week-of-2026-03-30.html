@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anti-Inflammation Weekly Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f0f7f4;
+    color: #1b4332;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1b4332, #40916c);
+    color: white;
+    padding: 36px 32px 32px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+  header p  { font-size: 0.95rem; opacity: 0.8; margin-top: 6px; }
+  .week-label {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 0.85rem;
+    margin-top: 10px;
+  }
+
+  /* PROGRESS BAR */
+  .week-progress {
+    max-width: 340px;
+    margin: 20px auto 0;
+  }
+  .week-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    opacity: 0.85;
+    margin-bottom: 6px;
+  }
+  .progress-bar-bg {
+    background: rgba(255,255,255,0.2);
+    border-radius: 99px;
+    height: 8px;
+  }
+  .progress-bar-fill {
+    background: #b7e4c7;
+    border-radius: 99px;
+    height: 8px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* MAIN CONTENT */
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 16px 60px; }
+
+  /* SECTION TITLES */
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d6a4f;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #b7e4c7;
+  }
+
+  /* DAY CARDS */
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 900px) {
+    .days-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 500px) {
+    .days-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .day-card {
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    border-top: 3px solid #b7e4c7;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .day-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .day-card.today {
+    border-top-color: #2d6a4f;
+    box-shadow: 0 4px 20px rgba(45,106,79,0.18);
+  }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .day-name { font-weight: 700; font-size: 0.95rem; }
+  .day-date { font-size: 0.75rem; color: #74c69d; }
+  .today-badge {
+    display: none;
+    background: #2d6a4f;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .today .today-badge { display: inline-block; }
+
+  .meal-item { margin-bottom: 9px; }
+  .meal-type {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #74c69d;
+    margin-bottom: 2px;
+  }
+  .meal-name { font-size: 0.78rem; font-weight: 500; color: #1b4332; line-height: 1.3; }
+
+  /* HABIT TRACKER */
+  .habits-section { margin-bottom: 36px; }
+  .habits-grid {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #52796f;
+    padding: 6px 4px;
+    text-align: center;
+  }
+  th.today-col { color: #2d6a4f; }
+  td { padding: 5px 4px; text-align: center; vertical-align: middle; }
+  td.habit-label {
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1b4332;
+    padding-right: 12px;
+    white-space: nowrap;
+  }
+  tr:not(:last-child) td { border-bottom: 1px solid #f0f7f4; }
+
+  .check-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid #b7e4c7;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    transition: all 0.2s;
+    font-size: 1rem;
+    user-select: none;
+  }
+  .check-circle:hover { border-color: #52b788; background: #d8f3dc; }
+  .check-circle.checked {
+    background: #2d6a4f;
+    border-color: #2d6a4f;
+    color: white;
+    animation: bounce 0.3s ease;
+  }
+  @keyframes bounce {
+    0%   { transform: scale(0.8); }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Day progress mini bar */
+  .day-progress-wrap { margin-top: 4px; }
+  .day-progress-bar {
+    height: 4px;
+    background: #d8f3dc;
+    border-radius: 99px;
+    overflow: hidden;
+    width: 34px;
+    margin: 0 auto;
+  }
+  .day-progress-fill {
+    height: 100%;
+    background: #2d6a4f;
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  /* FOODS PANEL */
+  .foods-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 600px) { .foods-panel { grid-template-columns: 1fr; } }
+
+  .food-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .food-card h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .food-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+  .tag-green { background: #d8f3dc; color: #1b4332; }
+  .tag-red   { background: #fde8d8; color: #c0392b; }
+
+  /* PRINCIPLES */
+  .principles { margin-bottom: 36px; }
+  .principles-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .principle-card {
+    background: white;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    color: #1b4332;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border-left: 3px solid #52b788;
+    line-height: 1.4;
+  }
+  .principle-num { font-weight: 700; color: #2d6a4f; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Anti-Inflammation Tracker</h1>
+  <p>Your weekly plan to feel lighter, clearer, and stronger</p>
+  <div class="week-label">Mar 30 – Apr 5, 2026</div>
+  <div class="week-progress">
+    <div class="week-progress-label">
+      <span>Week progress</span>
+      <span id="weekPct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="weekBar"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- MEAL PLAN -->
+  <div class="section-title">📅 Weekly Meal Plan</div>
+  <div class="days-grid" id="daysGrid">
+
+    <div class="day-card" data-day="0" style="border-top-color:#2d6a4f; animation-delay:0s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Monday</div>
+          <div class="day-date">Mar 30</div>
+        </div>
+        <span class="today-badge">Today</span>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Blueberry Chia Smoothie Bowl</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Salmon & Quinoa Power Bowl</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Turmeric Lentil Soup</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Walnuts + green tea</div></div>
+    </div>
+
+    <div class="day-card" data-day="1" style="border-top-color:#40916c; animation-delay:0.05s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Tuesday</div>
+          <div class="day-date">Mar 31</div>
+        </div>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Anti-Inflam Overnight Oats</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Kale & Roasted Veggie Wrap</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Garlic Herb Baked Salmon</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Apple + almond butter</div></div>
+    </div>
+
+    <div class="day-card" data-day="2" style="border-top-color:#52b788; animation-delay:0.1s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Wednesday</div>
+          <div class="day-date">Apr 1</div>
+        </div>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Spinach & Egg Scramble</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Mediterranean Chickpea Salad</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Ginger Tofu Stir-Fry</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Hummus + carrot sticks</div></div>
+    </div>
+
+    <div class="day-card" data-day="3" style="border-top-color:#74c69d; animation-delay:0.15s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Thursday</div>
+          <div class="day-date">Apr 2</div>
+        </div>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Golden Turmeric Smoothie</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Arugula Salmon Salad</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Black Bean & Sweet Potato Bowl</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Berries + almonds</div></div>
+    </div>
+
+    <div class="day-card" data-day="4" style="border-top-color:#e76f51; animation-delay:0.2s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Friday</div>
+          <div class="day-date">Apr 3</div>
+        </div>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Avocado Toast on Rye</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Broccoli & Farro Grain Bowl</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Baked Mackerel with Herbs</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Walnuts + dark chocolate</div></div>
+    </div>
+
+    <div class="day-card" data-day="5" style="border-top-color:#f4a261; animation-delay:0.25s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Saturday</div>
+          <div class="day-date">Apr 4</div>
+        </div>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Acai Berry Smoothie Bowl</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Grilled Veggie & Hummus Plate</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Herb-Crusted Salmon</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Pear + almond butter</div></div>
+    </div>
+
+    <div class="day-card" data-day="6" style="border-top-color:#457b9d; animation-delay:0.3s">
+      <div class="day-header">
+        <div>
+          <div class="day-name">Sunday</div>
+          <div class="day-date">Apr 5</div>
+        </div>
+      </div>
+      <div class="meal-item"><div class="meal-type">🌅 Breakfast</div><div class="meal-name">Veggie Omelette</div></div>
+      <div class="meal-item"><div class="meal-type">☀️ Lunch</div><div class="meal-name">Lentil & Veggie Soup</div></div>
+      <div class="meal-item"><div class="meal-type">🌙 Dinner</div><div class="meal-name">Baked Cod with Quinoa</div></div>
+      <div class="meal-item"><div class="meal-type">🍎 Snack</div><div class="meal-name">Green tea + mixed nuts</div></div>
+    </div>
+
+  </div>
+
+  <!-- HABIT TRACKER -->
+  <div class="habits-section">
+    <div class="section-title">✅ Daily Habit Tracker</div>
+    <div class="habits-grid">
+      <table id="habitTable">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Habit</th>
+            <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+          </tr>
+          <tr>
+            <td></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog0"></div></div></div></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog1"></div></div></div></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog2"></div></div></div></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog3"></div></div></div></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog4"></div></div></div></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog5"></div></div></div></td>
+            <td><div class="day-progress-wrap"><div class="day-progress-bar"><div class="day-progress-fill" id="prog6"></div></div></div></td>
+          </tr>
+        </thead>
+        <tbody id="habitBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FOODS PANEL -->
+  <div class="section-title">🍽️ Foods Guide</div>
+  <div class="foods-panel">
+    <div class="food-card">
+      <h3>✅ Eat These</h3>
+      <div class="food-tags">
+        <span class="tag tag-green">Salmon</span>
+        <span class="tag tag-green">Sardines</span>
+        <span class="tag tag-green">Leafy greens</span>
+        <span class="tag tag-green">Blueberries</span>
+        <span class="tag tag-green">Walnuts</span>
+        <span class="tag tag-green">Olive oil</span>
+        <span class="tag tag-green">Turmeric</span>
+        <span class="tag tag-green">Ginger</span>
+        <span class="tag tag-green">Quinoa</span>
+        <span class="tag tag-green">Chickpeas</span>
+        <span class="tag tag-green">Sweet potato</span>
+        <span class="tag tag-green">Avocado</span>
+        <span class="tag tag-green">Green tea</span>
+        <span class="tag tag-green">Chia seeds</span>
+        <span class="tag tag-green">Garlic</span>
+        <span class="tag tag-green">Berries</span>
+      </div>
+    </div>
+    <div class="food-card">
+      <h3>❌ Avoid These</h3>
+      <div class="food-tags">
+        <span class="tag tag-red">Refined sugar</span>
+        <span class="tag tag-red">White bread</span>
+        <span class="tag tag-red">Processed foods</span>
+        <span class="tag tag-red">Alcohol</span>
+        <span class="tag tag-red">Canola oil</span>
+        <span class="tag tag-red">Trans fats</span>
+        <span class="tag tag-red">Pastries</span>
+        <span class="tag tag-red">Sodas</span>
+        <span class="tag tag-red">Processed meat</span>
+        <span class="tag tag-red">Most cereals</span>
+        <span class="tag tag-red">Fast food</span>
+        <span class="tag tag-red">Margarine</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINCIPLES -->
+  <div class="principles">
+    <div class="section-title">💡 Core Principles</div>
+    <div class="principles-list">
+      <div class="principle-card"><span class="principle-num">1. </span>Eat the rainbow — variety of colours = variety of antioxidants</div>
+      <div class="principle-card"><span class="principle-num">2. </span>Omega-3s daily — fatty fish, walnuts or flaxseed at every opportunity</div>
+      <div class="principle-card"><span class="principle-num">3. </span>Gut health first — legumes, fibre and fermented foods reduce inflammation</div>
+      <div class="principle-card"><span class="principle-num">4. </span>Sleep is medicine — 7–9 hours is non-negotiable for healing</div>
+      <div class="principle-card"><span class="principle-num">5. </span>Stress spikes inflammation — even 10 min of calm daily helps</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // --- Habit data ---
+  const HABITS = [
+    "💧 8+ glasses of water",
+    "🥗 Anti-inflam foods every meal",
+    "🚶 30+ min movement",
+    "😴 7–9 hrs of sleep",
+    "🧘 Stress management",
+    "🚫 Avoided inflammatory foods"
+  ];
+  const DAYS = 7;
+  const HABITS_N = HABITS.length;
+
+  // State: checked[day][habit] = bool — persisted in localStorage
+  const STORAGE_KEY = 'anti-inflam-tracker-2026-03-30';
+  function loadState() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return Array.from({length: DAYS}, () => Array(HABITS_N).fill(false));
+  }
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); } catch(e) {}
+  }
+  const checked = loadState();
+
+  // --- Detect today ---
+  const todayIdx = (() => {
+    const d = new Date();
+    // Week starts Mon Mar 30 2026
+    const weekStart = new Date('2026-03-30');
+    const diff = Math.floor((d - weekStart) / 86400000);
+    return (diff >= 0 && diff < 7) ? diff : -1;
+  })();
+
+  // Mark today card
+  if (todayIdx >= 0) {
+    const cards = document.querySelectorAll('.day-card');
+    if (cards[todayIdx]) cards[todayIdx].classList.add('today');
+  }
+
+  // --- Build habit table ---
+  const tbody = document.getElementById('habitBody');
+  HABITS.forEach((habit, hi) => {
+    const tr = document.createElement('tr');
+    const tdLabel = document.createElement('td');
+    tdLabel.className = 'habit-label';
+    tdLabel.textContent = habit;
+    tr.appendChild(tdLabel);
+
+    for (let di = 0; di < DAYS; di++) {
+      const td = document.createElement('td');
+      const circle = document.createElement('div');
+      circle.className = 'check-circle' + (checked[di][hi] ? ' checked' : '');
+      circle.textContent = checked[di][hi] ? '✓' : '';
+      circle.dataset.day = di;
+      circle.dataset.habit = hi;
+      circle.setAttribute('role', 'checkbox');
+      circle.setAttribute('aria-checked', checked[di][hi] ? 'true' : 'false');
+      circle.onclick = () => toggle(di, hi, circle);
+      td.appendChild(circle);
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  });
+
+  // --- Toggle ---
+  function toggle(di, hi, el) {
+    checked[di][hi] = !checked[di][hi];
+    if (checked[di][hi]) {
+      el.classList.add('checked');
+      el.textContent = '✓';
+      el.setAttribute('aria-checked', 'true');
+    } else {
+      el.classList.remove('checked');
+      el.textContent = '';
+      el.setAttribute('aria-checked', 'false');
+    }
+    saveState();
+    updateProgress();
+  }
+
+  // --- Update progress ---
+  function updateProgress() {
+    let totalChecked = 0;
+    const totalPossible = DAYS * HABITS_N;
+
+    for (let di = 0; di < DAYS; di++) {
+      const dayChecked = checked[di].filter(Boolean).length;
+      totalChecked += dayChecked;
+      const pct = Math.round((dayChecked / HABITS_N) * 100);
+      const fill = document.getElementById('prog' + di);
+      if (fill) fill.style.width = pct + '%';
+    }
+
+    const weekPct = Math.round((totalChecked / totalPossible) * 100);
+    document.getElementById('weekPct').textContent = weekPct + '%';
+    document.getElementById('weekBar').style.width = weekPct + '%';
+  }
+
+  // Initial render
+  updateProgress();
+</script>
+</body>
+</html>
